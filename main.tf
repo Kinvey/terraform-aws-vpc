@@ -265,19 +265,14 @@ resource "aws_route" "private_nat_gateway" {
 ######################
 # VPC Endpoint for S3
 ######################
-data "aws_vpc_endpoint_service" "s3" {
-  count = "${var.create_vpc && var.enable_s3_endpoint ? 1 : 0}"
-
-  service_type = "${var.s3_endpoint_type}"
-  service = "s3"
-}
+data "aws_region" "current" {}
 
 resource "aws_vpc_endpoint" "s3" {
   count = "${var.create_vpc && var.enable_s3_endpoint ? 1 : 0}"
 
   vpc_id       = "${aws_vpc.this.id}"
-  service_name = "${data.aws_vpc_endpoint_service.s3.service_name}"
   vpc_endpoint_type = "${var.s3_endpoint_type}"
+  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
 }
 
 resource "aws_vpc_endpoint_route_table_association" "private_s3" {
@@ -304,19 +299,12 @@ resource "aws_vpc_endpoint_route_table_association" "public_s3" {
 ############################
 # VPC Endpoint for DynamoDB
 ############################
-data "aws_vpc_endpoint_service" "dynamodb" {
-  count = "${var.create_vpc && var.enable_dynamodb_endpoint ? 1 : 0}"
-
-  service = "dynamodb"
-  service_type = "${var.dynamodb_endpoint_type}"
-}
-
 resource "aws_vpc_endpoint" "dynamodb" {
   count = "${var.create_vpc && var.enable_dynamodb_endpoint ? 1 : 0}"
 
   vpc_id       = "${aws_vpc.this.id}"
-  service_name = "${data.aws_vpc_endpoint_service.dynamodb.service_name}"
   vpc_service_type = "${var.dynamodb_endpoint_type}"
+  service_name = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
 }
 
 resource "aws_vpc_endpoint_route_table_association" "private_dynamodb" {
